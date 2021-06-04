@@ -20,6 +20,7 @@ while True:
     form_data['page']=page
     res = requests.post(url, data=form_data)
     soup = BS(res.content, 'lxml')
+    #진행상황 확인
     print(page)
     if len(soup.select('li.people_li div.name'))==0:
         # 탈출 조건 설정
@@ -48,9 +49,23 @@ while True:
             for info in infos:
                 detail = re.sub('<span.+n>', '', str(info))
                 detail = re.sub('<.*?>', '', detail)
-                data_dict[info.span.get_text()] = detail.replace('\n', ' ')
+                data_dict[info.span.get_text()] = detail
+            #데이터 전처리 -> 홈페이지 항목 => 왜 try? 홈페이지가 없는 것도 있음
+            try:
+                #홈페이지 밸류를 가져와서 리스트화
+                homepages = data_dict['홈페이지']
+                homepages = homepages.split('\n')
+                #리스트화 하면서 생긴 빈칸을 제거
+                for homepage in homepages:
+                    if homepage=='':
+                        homepages.remove(homepage)
 
-                # print(info.span.get_text(),':',detail)
+                # 리스트의 각 요소 빈칸 제거하기 - map 활용
+                homepages = list(map(lambda x: x.strip(),homepages))
+                #전처리한 데이터 집어넣기
+                data_dict['홈페이지'] = homepages
+            except KeyError:
+                data_dict['홈페이지'] = '홈페이지 없음'
             print(data_dict)
             final_list.append(data_dict)
 
